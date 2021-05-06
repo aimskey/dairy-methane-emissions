@@ -1,5 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 abbrevs = pd.read_csv("state_abs.csv")
 us_state_abbrev = {'Alabama': 'AL', 'Alaska': 'AK', 'Arizona': 'AZ', 'Arkansas': 'AR', 'California': 'CA', 'Colorado': 'CO',
@@ -37,14 +38,21 @@ print(digester_db["State"].value_counts())
 
 digester_db["States with Incentive"] = active_incentives["program_state"]
 
+states_w_i = digester_db["States with Incentive"].value_counts()
+states_w_d = digester_db["State"].value_counts()
+compare = pd.DataFrame()
+compare["States with Incentive"] = states_w_i
+compare["State"] = states_w_d
+compare.fillna(0, inplace=True)
 
-#CHANGE THIS SO IT'S PLOTTING VALUE COUNTS
 plt.figure()
-ax = digester_db.plot.scatter("State", "States with Incentive")
+ax = compare.plot.scatter("State", "States with Incentive")
 ax.set_title("Potential Impact of Incentive Programs")
 ax.set_xlabel("Number of Anaerobic Digesters")
 ax.set_ylabel("Number of Incentive Programs")
 ax.figure.savefig("policyimpact.png", dpi=300)
+
+
 
 
 
