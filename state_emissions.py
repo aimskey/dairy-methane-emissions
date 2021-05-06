@@ -1,8 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
 
-abbrevs = pd.read_csv("state_abs.csv")
 us_state_abbrev = {'Alabama': 'AL', 'Alaska': 'AK', 'Arizona': 'AZ', 'Arkansas': 'AR', 'California': 'CA', 'Colorado': 'CO',
 'Connecticut': 'CT', 'Delaware': 'DE', 'Distict of Columbia': 'DC', 'Florida': 'FL', 'Georgia': 'GA', 'Hawaii': 'HI', 'Idaho': 'ID',
 'Illinois': 'IL', 'Indiana': 'IN', 'Iowa': 'IA', 'Kansas': 'KS', 'Kentucky': 'KY', 'Louisiana': 'LA',
@@ -12,13 +10,6 @@ us_state_abbrev = {'Alabama': 'AL', 'Alaska': 'AK', 'Arizona': 'AZ', 'Arkansas':
 'Oregon': 'OR', 'Pennsylvania': 'PA', 'Puerto Rico': 'PR', 'Rhode Island': 'RI', 'South Carolina': 'SC', 'South Dakota': 'SD',
 'Tennessee': 'TN', 'Texas': 'TX', 'Utah': 'UT', 'Vermont': 'VT', 'Virginia': 'VA', 'Washington': 'WA',
 'West Virginia': 'WV', 'Wisconsin': 'WI', 'Wyoming': 'WY', 'United States':'US'}
-
-state_incentives = pd.read_csv("list_state_incentives.csv")
-state_incentives = state_incentives[["Place", "Incentive/Active"]]
-state_incentives.rename(columns={"Place":"program_state", "Incentive/Active":"program_status"}, inplace=True)
-state_incentives["program_state"] = state_incentives["program_state"].map(us_state_abbrev)
-
-active_incentives = state_incentives[state_incentives["program_status"]]
 
 dtype_digester = {'State':str, 'Status':str, 'Animal/Farm Type(s)':str, 'Dairy':float, 'Total Emission Reductions(MTCO2e/yr':float, 'Awarded USDA Funding?':str}
 digester_db = pd.read_csv("agstar-livestock-ad-database.csv", dtype=dtype_digester)
@@ -30,27 +21,12 @@ digester_db.query("Status == 'Operational' and farm_type == 'Dairy'", inplace=Tr
 digester_db["usda_fund"].fillna("N", inplace=True)
 digester_db.fillna(0, inplace=True)
 
-print("\nNumber of Incentive Programs for Each Participating State")
-print(active_incentives["program_state"].value_counts())
+dtype_cownum = {'State':str,'Dairy Calves':float, 'Dairy Repl. Heif. 7-11 Months':float, 'Dairy Repl. Heif. 12-23 Months':float}
+cow_num = pd.read_csv('cow_num_by_state_thou.csv', dtype = dtype_cownum)
+cow_num["Dairy Cows"] = cow_num["Dairy Cows"].str.replace(",","").astype(float)
+cow_num = cow_num[['State', 'Dairy Calves','Dairy Cows', 'Dairy Repl. Heif. 7-11 Months','Dairy Repl. Heif. 12-23 Months']]
+cow_num['Replacements'] = cow_num['Dairy Repl. Heif. 7-11 Months'] + cow_num['Dairy Repl. Heif. 12-23 Months']
 
-print("\nNumber Anaerobic Digesters for Each State")
-print(digester_db["State"].value_counts())
-
-digester_db["States with Incentive"] = active_incentives["program_state"]
-
-states_w_i = digester_db["States with Incentive"].value_counts()
-states_w_d = digester_db["State"].value_counts()
-compare = pd.DataFrame()
-compare["States with Incentive"] = states_w_i
-compare["State"] = states_w_d
-compare.fillna(0, inplace=True)
-
-plt.figure()
-ax = compare.plot.scatter("State", "States with Incentive")
-ax.set_title("Potential Impact of Incentive Programs")
-ax.set_xlabel("Number of Anaerobic Digesters")
-ax.set_ylabel("Number of Incentive Programs")
-ax.figure.savefig("policyimpact.png", dpi=300)
 
 
 
