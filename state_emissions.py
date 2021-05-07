@@ -41,8 +41,20 @@ methane_ef['State'] = methane_ef['State'].map(us_state_abbrev)
 methane_ef.set_index('State', inplace=True)
 methane_ef['Replacements'] = methane_ef['Dairy Replacement Heifers 7-11 Months'] + methane_ef['Dairy Replacement Heifers 12-23 Months']
 methane_ef.drop(['Dairy Replacement Heifers 7-11 Months', 'Dairy Replacement Heifers 12-23 Months'], axis="columns", inplace=True)
-methane_ef['total'] = methane_ef.sum(axis="columns")
 methane_ef = methane_ef/1000
+
+methane_mm = pd.read_csv('methane_em_mm_state_kt.csv')
+methane_mm['State'] = methane_mm['State'].map(us_state_abbrev)
+methane_mm = methane_mm[['State','Dairy Cattl']]
+methane_mm.set_index('State', inplace=True)
+methane_mm.rename(columns={'Dairy Cattl':'Dairy Cattle'}, inplace=True)
+
+total_methane = methane_ef.merge(methane_mm, on='State', how='outer', validate ='1:1',indicator=True)
+total_methane.drop(['_merge'], axis="columns", inplace=True)
+total_methane['total'] = total_methane.sum(axis="columns")
+us_total = total_methane['total'].sum()
+print('\nTotal Methane Emissions from US Dairy Cows in 2019:', us_total, 'kilotons')
+
 
 
 
