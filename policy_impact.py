@@ -11,13 +11,23 @@ us_state_abbrev = {'Alabama': 'AL', 'Alaska': 'AK', 'Arizona': 'AZ', 'Arkansas':
 'Tennessee': 'TN', 'Texas': 'TX', 'Utah': 'UT', 'Vermont': 'VT', 'Virginia': 'VA', 'Washington': 'WA',
 'West Virginia': 'WV', 'Wisconsin': 'WI', 'Wyoming': 'WY', 'United States':'US'}
 
+#Import database of incentive programs across the US
 state_incentives = pd.read_csv("list_state_incentives.csv")
+
+#Isolate the state nme and status
 state_incentives = state_incentives[["Place", "Incentive/Active"]]
 state_incentives.rename(columns={"Place":"program_state", "Incentive/Active":"program_status"}, inplace=True)
+
+#Replace state name with abbreviations
 state_incentives["program_state"] = state_incentives["program_state"].map(us_state_abbrev)
 
+#Drop nan values
+state_incentives.dropna(axis="rows", inplace=True)
+
+#Isolate active programs
 active_incentives = state_incentives[state_incentives["program_status"]]
 
+#Import database of anaerobic digesters in US
 dtype_digester = {'State':str, 'Status':str, 'Animal/Farm Type(s)':str, 'Dairy':float, 'Total Emission Reductions(MTCO2e/yr':float, 'Awarded USDA Funding?':str}
 digester_db = pd.read_csv("agstar-livestock-ad-database.csv", dtype=dtype_digester)
 digester_db.columns = digester_db.columns.to_series().apply(lambda x: x.strip()) #found this line of code online after having problems with python not being able to read my data frame
@@ -28,27 +38,60 @@ digester_db.query("Status == 'Operational' and farm_type == 'Dairy'", inplace=Tr
 digester_db["usda_fund"].fillna("N", inplace=True)
 digester_db.fillna(0, inplace=True)
 
+#Calculate total number of Incentive Programs
 print("\nNumber of Incentive Programs for Each Participating State")
 print(active_incentives["program_state"].value_counts())
 
+#Calculate total number of digesters
 print("\nNumber Anaerobic Digesters for Each State")
 print(digester_db["State"].value_counts())
 
+
+#Add column to digester database with active incentive programs
 digester_db["States with Incentive"] = active_incentives["program_state"]
 
+#Create values to plot against each other
 states_w_i = digester_db["States with Incentive"].value_counts()
 states_w_d = digester_db["State"].value_counts()
+
+#Create data frame with only value counts
 compare = pd.DataFrame()
 compare["States with Incentive"] = states_w_i
 compare["State"] = states_w_d
+compare.rename(columns={'States with Incentive':'Number of Incentives', 'State':'Number of Digesters'}, inplace=True)
 compare.fillna(0, inplace=True)
 
+#Create scatter plot
 plt.figure()
-ax = compare.plot.scatter("State", "States with Incentive")
+ax = compare.plot.scatter("Number of Digesters", "Number of Incentives")
 ax.set_title("Potential Impact of Incentive Programs")
 ax.set_xlabel("Number of Anaerobic Digesters")
 ax.set_ylabel("Number of Incentive Programs")
 ax.figure.savefig("policyimpact.png", dpi=300)
+
+#Import cow numbers and emissions data from state_emissions script
+cow_num = pd.read_pickle('cow_num.pkl')
+total_methane = pd.read_pickle('total_methane.pkl')
+
+#Drop unnecessary columns
+total_methane.drop(['Dairy Cows','Dairy Calves','Replacements','Manure Emissions','total'],axis="columns",inplace=True)
+total_methane.rename(columns={'converted_MTCO2e':'MTCO2e Emissions'}, inplace=True)
+
+#Merge emissions with cow numbers and clean up data frame
+total_methane_num = total_methane.merge(cow_num, on='State',how='outer',validate='1:1',indicator=True)
+total_methane_num.drop(['Dairy Calves','Dairy Cows','Replacements','_merge'],axis='columns',inplace=True)
+total_methane_num.rename(columns={'total':'Total Cows'},inplace=True)
+
+#Convert cow numbers into thousands
+total_methane_num['Total Cows'] = total_methane_num['Total Cows']*1000
+
+#Create column of emissions/head
+total_methane_num['Emissions per Head'] = total_methane_num['MTCO2e Emissions']/total_methane_num['Total Cows']
+
+
+
+
+
 
 
 

@@ -39,13 +39,13 @@ merged = methane_percow.merge(digester_db, on='State', how='outer', validate='1:
 merged.drop(['Status', 'farm_type', 'usda_fund','_merge'], axis="columns", inplace=True)
 merged.dropna(axis="rows",inplace=True)
 
-#Multiplying per cow emissions * total number of cows at each dairy farm with an operational anaerobic digester.
+#Caluclating total emissions from farms with digesters
 merged['total_em'] = merged['MTCO2e/Cow']*merged['num_cows']
 
-#Calculating the estimated reduction percentage by taking the emissions reductions from each farm and dividing them by the projected total emissions for each farm.
+#Calculating the estimated reduction percentage
 merged['percent_reduct'] = round(merged['em_reduct']/merged['total_em']*100,1)
 
-#Calculating an average reduction in methane emissions by summing the percent and diving it by total number of operational digesters.
+#Calculating an average reduction in methane emissions
 average_reduct = merged['percent_reduct'].sum()/len(merged['percent_reduct'])
 print('\nAverage Reduction in Methane Emissions:',round(average_reduct,2), '%')
 
