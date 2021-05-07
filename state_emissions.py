@@ -31,6 +31,27 @@ cow_num['Replacements'] = cow_num['Dairy Repl. Heif. 7-11 Months'] + cow_num['Da
 cow_num.drop(['Dairy Repl. Heif. 7-11 Months','Dairy Repl. Heif. 12-23 Months'], axis="columns", inplace=True)
 cow_num["total"] = cow_num.sum(axis="columns")
 
+methane_ef = pd.read_csv('methane_em_ef_state_mt.csv')
+methane_ef["Dairy Calves"] = methane_ef["Dairy Calves"].str.replace(",","").astype(float)
+methane_ef["Dairy Cows"] = methane_ef["Dairy Cows"].str.replace(",","").astype(float)
+methane_ef["Dairy Replacement Heifers 7-11 Months"] = methane_ef["Dairy Replacement Heifers 7-11 Months"].str.replace(",","").astype(float)
+methane_ef["Dairy Replacement Heifers 12-23 Months"] = methane_ef["Dairy Replacement Heifers 12-23 Months"].str.replace(",","").astype(float)
+methane_ef = methane_ef[['State', 'Dairy Cows', 'Dairy Calves', 'Dairy Replacement Heifers 7-11 Months', 'Dairy Replacement Heifers 12-23 Months']]
+methane_ef['State'] = methane_ef['State'].map(us_state_abbrev)
+methane_ef.set_index('State', inplace=True)
+methane_ef['Replacements'] = methane_ef['Dairy Replacement Heifers 7-11 Months'] + methane_ef['Dairy Replacement Heifers 12-23 Months']
+methane_ef.drop(['Dairy Replacement Heifers 7-11 Months', 'Dairy Replacement Heifers 12-23 Months'], axis="columns", inplace=True)
+methane_ef['total'] = methane_ef.sum(axis="columns")
+methane_ef = methane_ef/1000
+
+
+
+
+
+
+
+
+
 
 
 
