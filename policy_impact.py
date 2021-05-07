@@ -45,7 +45,7 @@ print(active_incentives["program_state"].value_counts())
 #Calculate total number of digesters
 print("\nNumber Anaerobic Digesters for Each State")
 print(digester_db["State"].value_counts())
-
+#%%
 
 #Add column to digester database with active incentive programs
 digester_db["States with Incentive"] = active_incentives["program_state"]
@@ -69,6 +69,8 @@ ax.set_xlabel("Number of Anaerobic Digesters")
 ax.set_ylabel("Number of Incentive Programs")
 ax.figure.savefig("policyimpact.png", dpi=300)
 
+#%%
+
 #Import cow numbers and emissions data from state_emissions script
 cow_num = pd.read_pickle('cow_num.pkl')
 total_methane = pd.read_pickle('total_methane.pkl')
@@ -78,7 +80,11 @@ total_methane.drop(['Dairy Cows','Dairy Calves','Replacements','Manure Emissions
 total_methane.rename(columns={'converted_MTCO2e':'MTCO2e Emissions'}, inplace=True)
 
 #Merge emissions with cow numbers and clean up data frame
-total_methane_num = total_methane.merge(cow_num, on='State',how='outer',validate='1:1',indicator=True)
+total_methane_num = total_methane.merge(cow_num, 
+                                        on='State',
+                                        how='outer',
+                                        validate='1:1',
+                                        indicator=True)
 total_methane_num.drop(['Dairy Calves','Dairy Cows','Replacements','_merge'],axis='columns',inplace=True)
 total_methane_num.rename(columns={'total':'Total Cows'},inplace=True)
 
@@ -87,6 +93,43 @@ total_methane_num['Total Cows'] = total_methane_num['Total Cows']*1000
 
 #Create column of emissions/head
 total_methane_num['Emissions per Head'] = total_methane_num['MTCO2e Emissions']/total_methane_num['Total Cows']
+
+#Clean up digester data frame and merge with emissions
+digest_states = digester_db.drop(['Status','farm_type','Total Emission Reductions (MTCO2e/yr)','usda_fund','States with Incentive'],axis="columns")
+digest_ornot = total_methane_num.reset_index().merge(digest_states,
+                                                     on='State',
+                                                     how='left',
+                                                     validate='1:m',
+                                                     indicator=True)
+digest_ornot = digest_ornot.set_index('State')
+#Dropping AK because it has emissions but no head of cattle in data frame
+digest_ornot.drop('AK', axis="rows",inplace=True)
+
+#Query for states with no digesters
+no_digest = digest_ornot.query("_merge == 'left_only'")
+
+#Query for states with digesters
+digest = digest_ornot.query("_merge == 'both'")
+
+#Plot emissions
+fig, (ax1, ax2) = plt.subplots(1,2)
+no_digest['Emissions per Head'].plot.hist(ax=ax1)
+ax1.set_title("No Digesters")
+digest['Emissions per Head'].plot.hist(ax=ax2)
+ax2.set_title("Digesters")
+fig.tight_layout()
+fig.savefig('em_digest.png',dpi=300)
+
+#Merge emissions with incentives
+total_incentive = total_methane_num.reset_index().merge(active_incentives, 
+                                          left_on='State', 
+                                          right_on='program_state', 
+                                          how='left', 
+                                          validate='1:m', 
+                                          indicator=True)
+
+
+
 
 
 

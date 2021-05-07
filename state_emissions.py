@@ -29,6 +29,9 @@ digester_db.query("Status == 'Operational' and farm_type == 'Dairy'", inplace=Tr
 digester_db["usda_fund"].fillna("N", inplace=True)
 digester_db.fillna(0, inplace=True)
 
+#Pickle data frame for future use
+digester_db.to_pickle('digester_db.pkl')
+
 #Reading in file with number of cows per state (in thousands), including different ages
 dtype_cownum = {'State':str,'Dairy Calves':float, 'Dairy Repl. Heif. 7-11 Months':float, 'Dairy Repl. Heif. 12-23 Months':float}
 cow_num = pd.read_csv('cow_num_by_state_thou.csv', dtype = dtype_cownum)
