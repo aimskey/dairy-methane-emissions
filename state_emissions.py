@@ -73,6 +73,8 @@ print('\nTotal Methane Emissions from US Dairy Cows in 2019:', us_total, 'kiloto
 
 
 
+
+
     
     
 
