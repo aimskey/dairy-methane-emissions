@@ -17,10 +17,10 @@ digester_db = pd.read_csv("agstar-livestock-ad-database.csv", dtype=dtype_digest
 
 #Editing header column to eliminate extra spaces
 digester_db.columns = digester_db.columns.to_series().apply(lambda x: x.strip()) #found this line of code online after having problems with python not being able to read my data frame
-digester_db = digester_db[["State", "Status", "Animal/Farm Type(s)", "Dairy", "Total Emission Reductions (MTCO2e/yr)", "Awarded USDA Funding?"]]
+digester_db = digester_db[["State", "Status", "Year Operational", "Animal/Farm Type(s)", "Dairy", "Total Emission Reductions (MTCO2e/yr)", "Awarded USDA Funding?"]]
 
 #Changing column names. Note: it's important to remember the unit of measurement for total emissions (in thise case MTCO2e)
-digester_db.rename(columns={'Animal/Farm Type(s)':'farm_type','Dairy':'num_cows','Total Emissions Reductions (MTCO2e/yr)':'em_reduct','Awarded USDA Funding?':'usda_fund'}, inplace=True)
+digester_db.rename(columns={'Year Operational':'year_operational','Animal/Farm Type(s)':'farm_type','Dairy':'num_cows','Total Emissions Reductions (MTCO2e/yr)':'em_reduct','Awarded USDA Funding?':'usda_fund'}, inplace=True)
 
 #Isolating only the dairy farms that have operational anaerobic digesters
 digester_db.query("Status == 'Operational' and farm_type == 'Dairy'", inplace=True)
@@ -62,12 +62,10 @@ methane_ef["Dairy Cows"] = methane_ef["Dairy Cows"].str.replace(",","").astype(f
 methane_ef["Dairy Replacement Heifers 7-11 Months"] = methane_ef["Dairy Replacement Heifers 7-11 Months"].str.replace(",","").astype(float)
 methane_ef["Dairy Replacement Heifers 12-23 Months"] = methane_ef["Dairy Replacement Heifers 12-23 Months"].str.replace(",","").astype(float)
 
-#Isolating only the dairy animals. This spreadsheet includes beef as well for future analyses
-methane_ef = methane_ef[['State', 'Dairy Cows', 'Dairy Calves', 'Dairy Replacement Heifers 7-11 Months', 'Dairy Replacement Heifers 12-23 Months']]
+#Isolating only the dairy cows. This spreadsheet includes 'dry' milk cattle and beef as well for future analyses
+methane_ef = methane_ef[['State', 'Dairy Cows']]
 methane_ef['State'] = methane_ef['State'].map(us_state_abbrev)
 methane_ef.set_index('State', inplace=True)
-methane_ef['Replacements'] = methane_ef['Dairy Replacement Heifers 7-11 Months'] + methane_ef['Dairy Replacement Heifers 12-23 Months']
-methane_ef.drop(['Dairy Replacement Heifers 7-11 Months', 'Dairy Replacement Heifers 12-23 Months'], axis="columns", inplace=True)
 
 #These emissions are in kgs/head (cow). For manure management comparison I need to put it into to kilotons.
 methane_ef = methane_ef/1000
@@ -86,7 +84,7 @@ total_methane['total'] = total_methane.sum(axis="columns")
 
 #Creating a totals variable to see total methane emissions from dairy animals.
 us_total = round(total_methane['total'].sum(),2)
-print('\nTotal Methane Emissions from US Dairy Cows (including Calves and Replacements) in 2019:',us_total, 'kilotons')
+print('\nTotal Methane Emissions from US Dairy Cows in 2019:',us_total, 'kilotons')
 
 #When looking at greenhouse gases, the unit of comparison is metric tons of carbon dioxide equivalent (MTCO2e)
 #Convert kilotons to MTCO2e
@@ -98,7 +96,7 @@ total_methane.to_pickle('total_methane.pkl')
 
 #Create totals variable
 converted_total = round(total_methane['converted_MTCO2e'].sum(),2)
-print('\nTotal Methane Emissions from US Dairy Cows (including Calves and Replacements) in 2019:',converted_total, 'MTCO2e')
+print('\nTotal Methane Emissions from US Dairy Cows in 2019:',converted_total, 'MTCO2e')
 
 
 

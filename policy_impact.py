@@ -27,16 +27,9 @@ state_incentives.dropna(axis="rows", inplace=True)
 #Isolate active programs
 active_incentives = state_incentives[state_incentives["program_status"]]
 
+#%%
 #Import database of anaerobic digesters in US
-dtype_digester = {'State':str, 'Status':str, 'Animal/Farm Type(s)':str, 'Dairy':float, 'Total Emission Reductions(MTCO2e/yr':float, 'Awarded USDA Funding?':str}
-digester_db = pd.read_csv("agstar-livestock-ad-database.csv", dtype=dtype_digester)
-digester_db.columns = digester_db.columns.to_series().apply(lambda x: x.strip()) #found this line of code online after having problems with python not being able to read my data frame
-digester_db = digester_db[["State", "Status", "Animal/Farm Type(s)", "Dairy", "Total Emission Reductions (MTCO2e/yr)", "Awarded USDA Funding?"]]
-digester_db.rename(columns={'Animal/Farm Type(s)':'farm_type','Dairy':'num_cows','Total Emissions Reductions (MTCO2e/yr)':'em_reduct','Awarded USDA Funding?':'usda_fund'}, inplace=True)
-digester_db.query("Status == 'Operational' and farm_type == 'Dairy'", inplace=True)
-
-digester_db["usda_fund"].fillna("N", inplace=True)
-digester_db.fillna(0, inplace=True)
+digester_db = pd.read_pickle('digester_db.pkl')
 
 #Calculate total number of Incentive Programs
 print("\nNumber of Incentive Programs for Each Participating State")
@@ -76,7 +69,7 @@ cow_num = pd.read_pickle('cow_num.pkl')
 total_methane = pd.read_pickle('total_methane.pkl')
 
 #Drop unnecessary columns
-total_methane.drop(['Dairy Cows','Dairy Calves','Replacements','Manure Emissions','total'],axis="columns",inplace=True)
+total_methane.drop(['Dairy Cows','Manure Emissions','total'],axis="columns",inplace=True)
 total_methane.rename(columns={'converted_MTCO2e':'MTCO2e Emissions'}, inplace=True)
 
 #Merge emissions with cow numbers and clean up data frame
@@ -94,9 +87,13 @@ total_methane_num['Dairy Cows'] = total_methane_num['Dairy Cows']*1000
 #Create column of emissions/head
 total_methane_num['Emissions per Head'] = total_methane_num['MTCO2e Emissions']/total_methane_num['Dairy Cows']
 
-#Clean up digester data frame and merge with emissions
-digest_states = digester_db.drop(['Status','farm_type','Total Emission Reductions (MTCO2e/yr)','usda_fund','States with Incentive'],axis="columns")
-digest_ornot = total_methane_num.reset_index().merge(digest_states,
+#Clean up digester data frame. Emissions data is from 2019 so must eliminate digesters operational after 2019.
+print('\nTotal Digesters:',len(digester_db))
+digest_operational = digester_db.query("year_operational <= 2019")
+print('\nTotal Digesters Operational By 2019:',len(digest_operational))
+
+digest_states = digest_operational.drop(['Status','farm_type','Total Emission Reductions (MTCO2e/yr)','usda_fund','States with Incentive'],axis="columns")
+digest_ornot = total_methane_num.reset_index().merge(digest_operational,
                                                      on='State',
                                                      how='left',
                                                      validate='1:m',
@@ -116,8 +113,15 @@ digest = digest.drop_duplicates(subset='Total Cows')
 #Total emissions
 total_digest = round(digest['Emissions per Head'].sum()/len(digest['Emissions per Head']),3)
 total_nodigest = round(no_digest['Emissions per Head'].sum()/len(no_digest['Emissions per Head']),3)
-print('\nTotal Emissions per Head for States with Digesters:',total_digest)
-print('\nTotal Emissions per Head for States without Digesters:',total_nodigest)
+
+#Convert to KGs - I think it's easier to conceive of kilograms when thinking of per cow basis
+convert_digest = 1000*total_digest
+convert_nodigest = 1000*total_nodigest                                                           
+
+print('\nTotal Emissions per Head for States with Digesters:',total_digest, 'MTCO2e/year',
+      '\nor',convert_digest,'KGCO2e/year')
+print('\nTotal Emissions per Head for States without Digesters:',total_nodigest,'MTCO2e/year',
+      '\nor',convert_nodigest,'KGCO2e/year')
 
 #Plot emissions
 fig, (ax1, ax2) = plt.subplots(1,2)
@@ -128,13 +132,6 @@ ax2.set_title("Digesters")
 fig.tight_layout()
 fig.savefig('em_digest.png',dpi=300)
 
-#Merge emissions with incentives
-total_incentive = total_methane_num.reset_index().merge(active_incentives, 
-                                          left_on='State', 
-                                          right_on='program_state', 
-                                          how='left', 
-                                          validate='1:m', 
-                                          indicator=True)
 
 
 
