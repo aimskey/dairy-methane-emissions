@@ -111,6 +111,7 @@ no_digest = digest_ornot.query("_merge == 'left_only'")
 
 #Query for states with digesters
 digest = digest_ornot.query("_merge == 'both'")
+digest = digest.drop_duplicates(subset='Total Cows')
 
 #Total emissions
 total_digest = round(digest['Emissions per Head'].sum()/len(digest['Emissions per Head']),3)
