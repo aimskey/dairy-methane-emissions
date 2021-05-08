@@ -118,7 +118,11 @@ no_digest = digest_ornot.query("Digesters == 'N'")
 
 #Query for states with digesters
 digest = digest_ornot.query("Digesters == 'Y'")
-digest = digest.drop_duplicates(subset='Total Animals')
+
+#Reset index to drop duplicates, then reassign
+digest = digest.reset_index()
+digest = digest.drop_duplicates(subset='State', keep='first')
+digest = digest.set_index('State')
 
 #Total emissions
 total_digest = round(digest['Emissions per Head'].sum()/len(digest['Emissions per Head']),3)
