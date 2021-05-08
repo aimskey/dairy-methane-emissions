@@ -111,6 +111,12 @@ no_digest = digest_ornot.query("_merge == 'left_only'")
 #Query for states with digesters
 digest = digest_ornot.query("_merge == 'both'")
 
+#Total emissions
+total_digest = round(digest['Emissions per Head'].sum()/len(digest['Emissions per Head']),3)
+total_nodigest = round(no_digest['Emissions per Head'].sum()/len(no_digest['Emissions per Head']),3)
+print('\nTotal Emissions per Head for States with Digesters:',total_digest)
+print('\nTotal Emissions per Head for States without Digesters:',total_nodigest)
+
 #Plot emissions
 fig, (ax1, ax2) = plt.subplots(1,2)
 no_digest['Emissions per Head'].plot.hist(ax=ax1)
