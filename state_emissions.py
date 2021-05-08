@@ -12,7 +12,7 @@ us_state_abbrev = {'Alabama': 'AL', 'Alaska': 'AK', 'Arizona': 'AZ', 'Arkansas':
 'West Virginia': 'WV', 'Wisconsin': 'WI', 'Wyoming': 'WY', 'United States':'US'}
 
 #Import csv file with all anaerobic digesters in the US
-dtype_digester = {'State':str, 'Status':str, 'Animal/Farm Type(s)':str, 'Dairy':float, 'Total Emission Reductions(MTCO2e/yr':float, 'Awarded USDA Funding?':str}
+dtype_digester = {'State':str, 'Status':str, 'Animal/Farm Type(s)':str, 'Dairy':float, 'Total Emission Reductions(MTCO2e/yr)':float, 'Awarded USDA Funding?':str}
 digester_db = pd.read_csv("agstar-livestock-ad-database.csv", dtype=dtype_digester)
 
 #Editing header column to eliminate extra spaces
@@ -20,7 +20,11 @@ digester_db.columns = digester_db.columns.to_series().apply(lambda x: x.strip())
 digester_db = digester_db[["State", "Status", "Year Operational", "Animal/Farm Type(s)", "Dairy", "Total Emission Reductions (MTCO2e/yr)", "Awarded USDA Funding?"]]
 
 #Changing column names. Note: it's important to remember the unit of measurement for total emissions (in thise case MTCO2e)
-digester_db.rename(columns={'Year Operational':'year_operational','Animal/Farm Type(s)':'farm_type','Dairy':'num_cows','Total Emissions Reductions (MTCO2e/yr)':'em_reduct','Awarded USDA Funding?':'usda_fund'}, inplace=True)
+digester_db.rename(columns={'Year Operational':'year_operational','Animal/Farm Type(s)':'farm_type','Dairy':'num_cows','Total Emission Reductions (MTCO2e/yr)':'em_reduct','Awarded USDA Funding?':'usda_fund'}, inplace=True)
+
+#Changing data types
+digester_db["num_cows"] = digester_db["num_cows"].str.replace(",","").astype(float)
+digester_db["em_reduct"] = digester_db["em_reduct"].str.replace(",","").astype(float)
 
 #Isolating only the dairy farms that have operational anaerobic digesters
 digester_db.query("Status == 'Operational' and farm_type == 'Dairy'", inplace=True)
@@ -78,8 +82,16 @@ methane_mm.set_index('State', inplace=True)
 methane_mm.rename(columns={'Dairy Cattl':'Manure Emissions'}, inplace=True)
 
 #Merging the two datasets to see total emissions
-total_methane = methane_ef.merge(methane_mm, on='State', how='outer', validate ='1:1',indicator=True)
+total_methane = methane_ef.merge(methane_mm, on='State',
+                                 how='outer', 
+                                 validate ='1:1',
+                                 indicator=True)
 total_methane.drop(['_merge'], axis="columns", inplace=True)
+
+#Pickle for future use
+total_methane.to_pickle('total_methane.pkl')
+
+#Total emissions
 total_methane['total'] = total_methane.sum(axis="columns")
 
 #Creating a totals variable to see total methane emissions from dairy animals.

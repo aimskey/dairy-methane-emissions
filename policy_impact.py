@@ -1,5 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 us_state_abbrev = {'Alabama': 'AL', 'Alaska': 'AK', 'Arizona': 'AZ', 'Arkansas': 'AR', 'California': 'CA', 'Colorado': 'CO',
 'Connecticut': 'CT', 'Delaware': 'DE', 'Distict of Columbia': 'DC', 'Florida': 'FL', 'Georgia': 'GA', 'Hawaii': 'HI', 'Idaho': 'ID',
@@ -79,7 +80,7 @@ total_methane_num = total_methane.merge(cow_num,
                                         validate='1:1',
                                         indicator=True)
 total_methane_num.drop(['Dairy Calves','Replacements','_merge'],axis='columns',inplace=True)
-total_methane_num.rename(columns={'total':'Total Cows'},inplace=True)
+total_methane_num.rename(columns={'total':'Total Animals'},inplace=True)
 
 #Convert cow numbers into thousands
 total_methane_num['Dairy Cows'] = total_methane_num['Dairy Cows']*1000
@@ -92,7 +93,7 @@ print('\nTotal Digesters:',len(digester_db))
 digest_operational = digester_db.query("year_operational <= 2019")
 print('\nTotal Digesters Operational By 2019:',len(digest_operational))
 
-digest_states = digest_operational.drop(['Status','farm_type','Total Emission Reductions (MTCO2e/yr)','usda_fund','States with Incentive'],axis="columns")
+digest_states = digest_operational.drop(['Status','farm_type','em_reduct','usda_fund','States with Incentive'],axis="columns")
 digest_ornot = total_methane_num.reset_index().merge(digest_operational,
                                                      on='State',
                                                      how='left',
@@ -100,15 +101,24 @@ digest_ornot = total_methane_num.reset_index().merge(digest_operational,
                                                      indicator=True)
 digest_ornot = digest_ornot.set_index('State')
 
+
+#Make data frame easier to read
+digest_ornot.rename(columns={'_merge':'Digesters'}, inplace=True)
+digest_ornot['Digesters'].replace(['both'],'Y', inplace=True)
+digest_ornot['Digesters'].replace(['left_only'],'N', inplace=True)
+
+#Pickle for future use
+digest_ornot.to_pickle('digest_ornot.pkl')
+
 #Dropping AK because it has emissions but no head of cattle in data frame
 digest_ornot.drop('AK', axis="rows",inplace=True)
 
 #Query for states with no digesters
-no_digest = digest_ornot.query("_merge == 'left_only'")
+no_digest = digest_ornot.query("Digesters == 'N'")
 
 #Query for states with digesters
-digest = digest_ornot.query("_merge == 'both'")
-digest = digest.drop_duplicates(subset='Total Cows')
+digest = digest_ornot.query("Digesters == 'Y'")
+digest = digest.drop_duplicates(subset='Total Animals')
 
 #Total emissions
 total_digest = round(digest['Emissions per Head'].sum()/len(digest['Emissions per Head']),3)
@@ -131,8 +141,6 @@ digest['Emissions per Head'].plot.hist(ax=ax2)
 ax2.set_title("Digesters")
 fig.tight_layout()
 fig.savefig('em_digest.png',dpi=300)
-
-
 
 
 
