@@ -12,6 +12,9 @@ us_state_abbrev = {'Alabama': 'AL', 'Alaska': 'AK', 'Arizona': 'AZ', 'Arkansas':
 
 #Importing spreadsheet that details where all anaerobic digesters are in the US
 digester_db = pd.read_pickle('digester_db.pkl')
+digester_db["num_cows"] = digester_db["num_cows"].str.replace(",","").astype(float)
+digester_db["Total Emission Reductions (MTCO2e/yr)"] = digester_db["Total Emission Reductions (MTCO2e/yr)"].str.replace(",","").astype(float)
+digester_db.rename(columns={'Total Emission Reductions (MTCO2e/yr)':'em_reduct'},inplace=True)
 
 #Importing spreadsheet that details state specific enteric fermentation emissions per cow 
 methane_percow = pd.read_csv('em_percow.csv')
@@ -25,7 +28,12 @@ methane_percow['MTCO2e/Cow'] = methane_percow['CH4/Cow']*84/1000
 methane_percow.drop(['CH4/Cow'],axis="columns", inplace=True)
 
 #Merging two data frames to look total emissions and emissions reductions
-merged = methane_percow.merge(digester_db, on='State', how='outer', validate='1:m', indicator=True)
+merged = methane_percow.merge(digester_db,
+                              on='State', 
+                              how='outer', 
+                              validate='1:m', 
+                              indicator=True)
+
 merged.drop(['Status', 'farm_type', 'usda_fund','_merge'], axis="columns", inplace=True)
 merged.dropna(axis="rows",inplace=True)
 
@@ -33,7 +41,7 @@ merged.dropna(axis="rows",inplace=True)
 merged['total_em'] = merged['MTCO2e/Cow']*merged['num_cows']
 
 #Calculating the estimated reduction percentage
-merged['percent_reduct'] = round(merged['em_reduct']/merged['total_em']*100,1)
+merged['percent_reduct'] = round(merged['em_reduct']/merged['total_em']*100,0)
 
 #Calculating an average reduction in methane emissions
 average_reduct = merged['percent_reduct'].sum()/len(merged['percent_reduct'])
@@ -42,7 +50,7 @@ print('\nAverage Reduction in Methane Emissions:',round(average_reduct,2), '%')
 num_cows_digest = digester_db['num_cows'].sum()
 print('\nTotal Number of Cows with Digester:',num_cows_digest,'thousand')
 
-total_em_reduct = digester_db['em_reduct'].sum()
+total_em_reduct = round(digester_db['em_reduct'].sum(),0)
 print('\nTotal Emissions Reductions from Digesters:',total_em_reduct,'MTCO2e/year')
 
 

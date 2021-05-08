@@ -85,8 +85,8 @@ total_methane.drop(['_merge'], axis="columns", inplace=True)
 total_methane['total'] = total_methane.sum(axis="columns")
 
 #Creating a totals variable to see total methane emissions from dairy animals.
-us_total = total_methane['total'].sum()
-print('\nTotal Methane Emissions from US Dairy Cows (including Calves and Replacements) in 2019:', us_total, 'kilotons')
+us_total = round(total_methane['total'].sum(),2)
+print('\nTotal Methane Emissions from US Dairy Cows (including Calves and Replacements) in 2019:',us_total, 'kilotons')
 
 #When looking at greenhouse gases, the unit of comparison is metric tons of carbon dioxide equivalent (MTCO2e)
 #Convert kilotons to MTCO2e
@@ -97,10 +97,9 @@ total_methane['converted_MTCO2e'] = total_methane['total']*1000*84/1000
 total_methane.to_pickle('total_methane.pkl')
 
 #Create totals variable
-converted_total = total_methane['converted_MTCO2e'].sum()
+converted_total = round(total_methane['converted_MTCO2e'].sum(),2)
 print('\nTotal Methane Emissions from US Dairy Cows (including Calves and Replacements) in 2019:',converted_total, 'MTCO2e')
 
-#Want to see do states with incentive programs have lower per cow emissions?
 
 
 

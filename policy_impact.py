@@ -85,14 +85,14 @@ total_methane_num = total_methane.merge(cow_num,
                                         how='outer',
                                         validate='1:1',
                                         indicator=True)
-total_methane_num.drop(['Dairy Calves','Dairy Cows','Replacements','_merge'],axis='columns',inplace=True)
+total_methane_num.drop(['Dairy Calves','Replacements','_merge'],axis='columns',inplace=True)
 total_methane_num.rename(columns={'total':'Total Cows'},inplace=True)
 
 #Convert cow numbers into thousands
-total_methane_num['Total Cows'] = total_methane_num['Total Cows']*1000
+total_methane_num['Dairy Cows'] = total_methane_num['Dairy Cows']*1000
 
 #Create column of emissions/head
-total_methane_num['Emissions per Head'] = total_methane_num['MTCO2e Emissions']/total_methane_num['Total Cows']
+total_methane_num['Emissions per Head'] = total_methane_num['MTCO2e Emissions']/total_methane_num['Dairy Cows']
 
 #Clean up digester data frame and merge with emissions
 digest_states = digester_db.drop(['Status','farm_type','Total Emission Reductions (MTCO2e/yr)','usda_fund','States with Incentive'],axis="columns")
@@ -102,6 +102,7 @@ digest_ornot = total_methane_num.reset_index().merge(digest_states,
                                                      validate='1:m',
                                                      indicator=True)
 digest_ornot = digest_ornot.set_index('State')
+
 #Dropping AK because it has emissions but no head of cattle in data frame
 digest_ornot.drop('AK', axis="rows",inplace=True)
 
