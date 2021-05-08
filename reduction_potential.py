@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 us_state_abbrev = {'Alabama': 'AL', 'Alaska': 'AK', 'Arizona': 'AZ', 'Arkansas': 'AR', 'California': 'CA', 'Colorado': 'CO',
 'Connecticut': 'CT', 'Delaware': 'DE', 'Distict of Columbia': 'DC', 'Florida': 'FL', 'Georgia': 'GA', 'Hawaii': 'HI', 'Idaho': 'ID',
@@ -12,9 +13,6 @@ us_state_abbrev = {'Alabama': 'AL', 'Alaska': 'AK', 'Arizona': 'AZ', 'Arkansas':
 
 #Importing spreadsheet that details where all anaerobic digesters are in the US
 digester_db = pd.read_pickle('digester_db.pkl')
-digester_db["num_cows"] = digester_db["num_cows"].str.replace(",","").astype(float)
-digester_db["Total Emission Reductions (MTCO2e/yr)"] = digester_db["Total Emission Reductions (MTCO2e/yr)"].str.replace(",","").astype(float)
-digester_db.rename(columns={'Total Emission Reductions (MTCO2e/yr)':'em_reduct'},inplace=True)
 
 #Importing spreadsheet that details state specific enteric fermentation emissions per cow 
 methane_percow = pd.read_csv('em_percow.csv')
@@ -28,23 +26,23 @@ methane_percow['MTCO2e/Cow'] = methane_percow['CH4/Cow']*84/1000
 methane_percow.drop(['CH4/Cow'],axis="columns", inplace=True)
 
 #Merging two data frames to look total emissions and emissions reductions
-merged = methane_percow.merge(digester_db,
+digester_effect = methane_percow.merge(digester_db,
                               on='State', 
                               how='outer', 
                               validate='1:m', 
                               indicator=True)
 
-merged.drop(['Status', 'farm_type', 'usda_fund','_merge'], axis="columns", inplace=True)
-merged.dropna(axis="rows",inplace=True)
+digester_effect.drop(['Status', 'farm_type', 'usda_fund','_merge'], axis="columns", inplace=True)
+digester_effect.dropna(axis="rows",inplace=True)
 
 #Caluclating total emissions from farms with digesters
-merged['total_em'] = merged['MTCO2e/Cow']*merged['num_cows']
+digester_effect['total_em'] = digester_effect['MTCO2e/Cow']*digester_effect['num_cows']
 
 #Calculating the estimated reduction percentage
-merged['percent_reduct'] = round(merged['em_reduct']/merged['total_em']*100,0)
+digester_effect['percent_reduct'] = round(digester_effect['em_reduct']/digester_effect['total_em']*100,0)
 
 #Calculating an average reduction in methane emissions
-average_reduct = merged['percent_reduct'].sum()/len(merged['percent_reduct'])
+average_reduct = digester_effect['percent_reduct'].sum()/len(digester_effect['percent_reduct'])
 print('\nAverage Reduction in Methane Emissions:',round(average_reduct,2), '%')
 
 num_cows_digest = digester_db['num_cows'].sum()
@@ -52,6 +50,11 @@ print('\nTotal Number of Cows with Digester:',num_cows_digest,'thousand')
 
 total_em_reduct = round(digester_db['em_reduct'].sum(),0)
 print('\nTotal Emissions Reductions from Digesters:',total_em_reduct,'MTCO2e/year')
+#%%
+#Wondering if size of farms correlated with existene of digester
+digester_effect.sort_values(by='num_cows')
+farm_size = np.percentile(digester_effect['num_cows'],[0,20,40,60,80])
+print(farm_size)
 
 
 

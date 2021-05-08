@@ -33,10 +33,12 @@ us_emissions.drop(['_merge'], axis='columns', inplace=True)
 #Save to geopackage
 us_emissions.to_file('us_emissions.gpkg', layer='emissions', driver='GPKG')
 
+#%%
 #Create digesters data frame
 digesters_state = digest_ornot.drop(['MTCO2e Emissions','Total Animals', 'Emissions per Head', 'Status', 'farm_type','num_cows',
                    'em_reduct','usda_fund','States with Incentive',
                    'Dairy Cows','year_operational'], axis="columns")
+digesters_state['Digesters'] = digesters_state['Digesters'].astype(str)
 
 #Merge
 digesters_us = usa.merge(digesters_state, left_on="STUSPS",
@@ -49,6 +51,8 @@ print(len(digesters_us['STUSPS'].value_counts()))
 digesters_us.drop(['_merge'],axis='columns', inplace=True)
 
 digesters_us.to_file('us_emissions.gpkg', layer='digesters', driver='GPKG')
+
+#%%
 
 
 

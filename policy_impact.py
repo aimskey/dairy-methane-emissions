@@ -1,6 +1,5 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
 
 us_state_abbrev = {'Alabama': 'AL', 'Alaska': 'AK', 'Arizona': 'AZ', 'Arkansas': 'AR', 'California': 'CA', 'Colorado': 'CO',
 'Connecticut': 'CT', 'Delaware': 'DE', 'Distict of Columbia': 'DC', 'Florida': 'FL', 'Georgia': 'GA', 'Hawaii': 'HI', 'Idaho': 'ID',
@@ -39,6 +38,7 @@ print(active_incentives["program_state"].value_counts())
 #Calculate total number of digesters
 print("\nNumber Anaerobic Digesters for Each State")
 print(digester_db["State"].value_counts())
+
 #%%
 
 #Add column to digester database with active incentive programs
@@ -55,6 +55,10 @@ compare["State"] = states_w_d
 compare.rename(columns={'States with Incentive':'Number of Incentives', 'State':'Number of Digesters'}, inplace=True)
 compare.fillna(0, inplace=True)
 
+#Look at total sorted number of incentives and sorted number of digesters
+print('\nSorted by Digesters:',compare.sort_values(by='Number of Digesters'))
+print('\nSorted by Incentives:',compare.sort_values(by='Number of Incentives'))
+
 #Create scatter plot
 plt.figure()
 ax = compare.plot.scatter("Number of Digesters", "Number of Incentives")
@@ -62,6 +66,7 @@ ax.set_title("Potential Impact of Incentive Programs")
 ax.set_xlabel("Number of Anaerobic Digesters")
 ax.set_ylabel("Number of Incentive Programs")
 ax.figure.savefig("policyimpact.png", dpi=300)
+
 
 #%%
 
@@ -145,6 +150,11 @@ digest['Emissions per Head'].plot.hist(ax=ax2)
 ax2.set_title("Digesters")
 fig.tight_layout()
 fig.savefig('em_digest.png',dpi=300)
+
+#%%
+
+
+
 
 
 

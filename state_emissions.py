@@ -1,5 +1,4 @@
 import pandas as pd
-import matplotlib.pyplot as plt
 
 us_state_abbrev = {'Alabama': 'AL', 'Alaska': 'AK', 'Arizona': 'AZ', 'Arkansas': 'AR', 'California': 'CA', 'Colorado': 'CO',
 'Connecticut': 'CT', 'Delaware': 'DE', 'Distict of Columbia': 'DC', 'Florida': 'FL', 'Georgia': 'GA', 'Hawaii': 'HI', 'Idaho': 'ID',
@@ -31,7 +30,6 @@ digester_db.query("Status == 'Operational' and farm_type == 'Dairy'", inplace=Tr
 
 #Replacing empty space with "N" to indicate which farms did no receive USDA funding
 digester_db["usda_fund"].fillna("N", inplace=True)
-digester_db.fillna(0, inplace=True)
 
 #Pickle data frame for future use
 digester_db.to_pickle('digester_db.pkl')
