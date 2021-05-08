@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 
 us_state_abbrev = {'Alabama': 'AL', 'Alaska': 'AK', 'Arizona': 'AZ', 'Arkansas': 'AR', 'California': 'CA', 'Colorado': 'CO',
 'Connecticut': 'CT', 'Delaware': 'DE', 'Distict of Columbia': 'DC', 'Florida': 'FL', 'Georgia': 'GA', 'Hawaii': 'HI', 'Idaho': 'ID',
@@ -51,10 +52,15 @@ print('\nTotal Number of Cows with Digester:',num_cows_digest,'thousand')
 total_em_reduct = round(digester_db['em_reduct'].sum(),0)
 print('\nTotal Emissions Reductions from Digesters:',total_em_reduct,'MTCO2e/year')
 #%%
-#Wondering if size of farms correlated with existene of digester
-digester_effect.sort_values(by='num_cows')
+#Wondering if size of farms correlated with existence of digester
 farm_size = np.percentile(digester_effect['num_cows'],[0,20,40,60,80])
 print(farm_size)
+
+fig, ax1 = plt.subplots()
+digester_effect['num_cows'].plot.hist(ax=ax1, bins=farm_size)
+ax1.set_xlabel('Number of Cows')
+ax1.set_ylabel('Digesters')
+fig.savefig('farm_size.png', dpi=300)
 
 
 
