@@ -2,6 +2,8 @@ import pandas as pd
 import requests
 import geopandas
 import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 #%%
 
@@ -56,13 +58,14 @@ nys_cows.drop(['county_name','_merge'], axis='columns', inplace=True)
 
 
 #Calculate how many cows per square meter of land in each county, converted to acres
-nys_cows['cow_area'] = nys_cows['ALAND']/nys_cows['co_cow']/4046.86
+nys_cows['cow_area'] = round(nys_cows['ALAND']/nys_cows['co_cow']/4046.86,0)
 
 #Fix counties with 0 cows
 nys_cows['cow_area'].replace([np.inf,-np.inf],0, inplace=True)
 
-#Save to geopackage file
-nys_cows.to_file('nys_data.gpkg', layer='cows', driver='GPKG')
+#Change projection and save to geopackage file
+pro_nys_cows = nys_cows.to_crs(epsg=6347)
+pro_nys_cows.to_file('nys_data.gpkg', layer='cows', driver='GPKG')
 #%%
 
 #Merge census population data
@@ -79,10 +82,14 @@ nys_cows_ppl.drop(['_merge'], axis='columns', inplace=True)
 
 #%%
 #Calculate population per acre to keep it in the same units
-nys_cows_ppl['pop_area'] = nys_cows_ppl['ALAND']/nys_cows_ppl['pop'].astype(float)/4046.86
+nys_cows_ppl['pop_area'] = round(nys_cows_ppl['ALAND']/nys_cows_ppl['pop'].astype(float)/4046.86,0)
 
-nys_cows_ppl.to_file('nys_data.gpkg', layer='population', driver='GPKG')
-nys_cows_ppl.to_file('nys_data.gpkg', layer='earnings', driver='GPKG')
+pro_nys_cows_ppl = nys_cows_ppl.to_crs(epsg=6347)
+pro_nys_cows_ppl.to_file('nys_data.gpkg', layer='population', driver='GPKG')
+pro_nys_cows_ppl.to_file('nys_data.gpkg', layer='earnings', driver='GPKG')
+
+#Pickle for use in next script
+nys_cows_ppl.to_pickle('nys_cows_ppl.pkl')
 
 #%%
 #Import digester data and isolate NYS
@@ -112,7 +119,11 @@ nys_county_digest.drop_duplicates(['County'], inplace=True)
 nys_county_digest.dropna(subset=['County'], inplace=True)
 nys_county_digest.drop(['_merge'], axis='columns', inplace=True)
 
-nys_county_digest.to_file('nys_data.gpkg', layer='digesters', driver='GPKG')
+#Pickle for next script
+nys_county_digest.to_pickle('nys_county_digest.pkl')
+
+pro_nys_county_digest = nys_county_digest.to_crs(epsg=6347)
+pro_nys_county_digest.to_file('nys_data.gpkg', layer='digesters', driver='GPKG')
 
 
 
