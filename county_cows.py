@@ -1,4 +1,3 @@
-import csv
 import pandas as pd
 import requests
 import geopandas
@@ -64,8 +63,6 @@ nys_cows['cow_area'].replace([np.inf,-np.inf],0, inplace=True)
 
 #Save to geopackage file
 nys_cows.to_file('nys_data.gpkg', layer='cows', driver='GPKG')
-
-#NOTE TO SELF -- SOME ARE INF -- THIS WILL BE A PROBLEM LATER
 #%%
 
 #Merge census population data
@@ -89,7 +86,36 @@ nys_cows_ppl.to_file('nys_data.gpkg', layer='earnings', driver='GPKG')
 
 #%%
 #Import digester data and isolate NYS
-#digester_db = pd.read_pickle('digester_db.pkl') #NEED COUNT LEVEL DATA
+#Note to self - could pickle this from previous script
+digester_db = pd.read_csv("agstar-livestock-ad-database.csv")
+
+#Editing header column to eliminate extra spaces
+digester_db.columns = digester_db.columns.to_series().apply(lambda x: x.strip()) #found this line of code online after having problems with python not being able to read my data frame
+digester_db = digester_db[["County","State", "Status", "Animal/Farm Type(s)"]]
+
+#Changing column names. Note: it's important to remember the unit of measurement for total emissions (in thise case MTCO2e)
+digester_db.rename(columns={'Animal/Farm Type(s)':'farm_type'}, inplace=True)
+
+#Isolating only the dairy farms that have operational anaerobic digesters
+nys_digesters = digester_db.query("farm_type == 'Dairy' and State == 'NY'")
+
+#Merge digesters with census data
+nys_county_digest = nys_counties.merge(nys_digesters,
+                                       left_on = 'NAME',
+                                       right_on = 'County',
+                                       how = 'left',
+                                       validate = '1:m',
+                                       indicator = True)
+
+#Drop duplicate records - I want to know if a county has digesters, not how many
+nys_county_digest.drop_duplicates(['County'], inplace=True)
+nys_county_digest.dropna(subset=['County'], inplace=True)
+nys_county_digest.drop(['_merge'], axis='columns', inplace=True)
+
+nys_county_digest.to_file('nys_data.gpkg', layer='digesters', driver='GPKG')
+
+
+
 
 
 
