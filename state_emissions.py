@@ -31,6 +31,8 @@ digester_db.query("Status == 'Operational' and farm_type == 'Dairy'", inplace=Tr
 #Replacing empty space with "N" to indicate which farms did no receive USDA funding
 digester_db["usda_fund"].fillna("N", inplace=True)
 
+print('\nTotal Digesters in Operation in US:',len(digester_db))
+
 #Pickle data frame for future use
 digester_db.to_pickle('digester_db.pkl')
 
@@ -99,7 +101,7 @@ print('\nTotal Methane Emissions from US Dairy Cows in 2019:',us_total, 'kiloton
 #When looking at greenhouse gases, the unit of comparison is metric tons of carbon dioxide equivalent (MTCO2e)
 #Convert kilotons to MTCO2e
 #1kg of CH4(methane) is roughly equivalent to 84kgs of CO2. Here I muliply the kilotons by 1000 to get kgs, then multiply that by 84 to get KGCO2e, then divide by 1000 to get metric tons.
-total_methane['converted_MTCO2e'] = total_methane['total']*1000*84/1000
+total_methane['converted_MTCO2e'] = total_methane['total']*84/1000
 
 #Pickling total_methane to use in future script
 total_methane.to_pickle('total_methane.pkl')

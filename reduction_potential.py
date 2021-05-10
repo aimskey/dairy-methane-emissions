@@ -54,7 +54,6 @@ print('\nTotal Emissions Reductions from Digesters:',total_em_reduct,'MTCO2e/yea
 #%%
 #Wondering if size of farms correlated with existence of digester
 farm_size = np.percentile(digester_effect['num_cows'],[0,20,40,60,80])
-print(farm_size)
 
 fig, ax1 = plt.subplots()
 digester_effect['num_cows'].plot.hist(ax=ax1, bins=farm_size)

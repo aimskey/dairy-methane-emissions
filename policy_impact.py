@@ -1,6 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
+
 #%%
 
 us_state_abbrev = {'Alabama': 'AL', 'Alaska': 'AK', 'Arizona': 'AZ', 'Arkansas': 'AR', 'California': 'CA', 'Colorado': 'CO',
@@ -144,12 +144,15 @@ print('\nTotal Emissions per Head for States with Digesters:',total_digest, 'MTC
 print('\nTotal Emissions per Head for States without Digesters:',total_nodigest,'MTCO2e/year',
       '\nor',convert_nodigest,'KGCO2e/year')
 
+#%%
 #Plot emissions
 fig, (ax1, ax2) = plt.subplots(1,2)
 no_digest['Emissions per Head'].plot.hist(ax=ax1)
 ax1.set_title("No Digesters")
+ax1.set_xlabel('Emissions/Head')
 digest['Emissions per Head'].plot.hist(ax=ax2)
 ax2.set_title("Digesters")
+ax2.set_xlabel('Emissions/Head')
 fig.tight_layout()
 fig.savefig('em_digest.png',dpi=300)
 

@@ -2,8 +2,7 @@ import pandas as pd
 import requests
 import geopandas
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
+
 
 #%%
 
