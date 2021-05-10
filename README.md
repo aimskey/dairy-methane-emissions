@@ -21,10 +21,10 @@ https://www.epa.gov/agstar/livestock-anaerobic-digester-database
 Cow Inventory by State:
 https://www.nass.usda.gov/Publications/AgCensus/2017/Full_Report/Volume_1,_Chapter_1_State_Level/New_York/
 
-New York County Cows Inventory:
+Cow Inventory by County (New York):
 https://www.nass.usda.gov/Publications/AgCensus/2017/Full_Report/Volume_1,_Chapter_2_County_Level/New_York/st36_2_0011_0011.pdf
 
-State AD Incentive Programs:
+State Anaerobic Digester Incentive Programs:
 https://openei.org/wiki/List_of_Anaerobic_Digestion_Incentives
 
 Process:
@@ -34,29 +34,52 @@ Scripts should be run in this order:
 3. policy_impact.py
 4. analyze_digester.py
 5. emissions_map.py
+6. county_cows.py
 
 Findings:
-The highest dairy emitters are both states with high cow numbers, and also states with high per/head emitters.
-Cows emit different levels of methane based on their feed, suggesting that while these anaerobic digesters can 
+Digesters effect on emissions:
+
+Figure em_digest.png shows the emissions/head for states with and without digesters.
+Emissions/Head/yr with Digesters: 23kg
+Emissions/Head/yes without Digesters: 22kg
+
+The highest dairy emitters are both states with high cow numbers and also states with high per head emitters.
+Cows emit different levels of methane based on their feed, potentially suggesting that while these anaerobic digesters can 
 have a significant impact on emissions, feed may be another important angle to address emissions. 
 
 Based on the average reduction of emissions from existing ADs, the average reduction is 52.95%. 
 This is significantly less than the reported reduction of up to 85%.
-Per head emissions between states that have operational digeesters and those that don't are nearly identical.
-Per head emissions varies greatly by state, and those with ADs have higher per head emissions from the start.
-Farm size does seem to make a difference, digesters are much more common on large farms (>1000)
 
-The existence of incentive programs rarely means the existence of digesters. Many states have some form of incentive
-but that doesn't necessarily encourage a lot of digesters. Future research should be done on the quality of forms of
-these incentives. The actual number of incentives doens't seem to make a large difference either. 
+Figure farm_size.png shows the rate of digesters based on farm size.
+Farm size does seem to make a difference, digesters are much more common on large farms (head > 2000)
 
-States with the highest emissions tend to have digesters in place, but that is not always true. Looking at the map
-us_cont_emissions.png, Texas and New Mexico are relatively high emitters with no ADs. It's also important to note
-that the existence of operational digesters does not specify how many. Future analysis could be done to see how many
-are in each state and how many would be necessary to make a significant impact.
+Figure policyimpact.png shows that the existence of incentive programs does not necessariy lead to the existence
+of digesters. Many states have some form of incentive but that doesn't necessarily encourage a lot of digesters. 
+Future research should be done on the quality ofthese incentives. 
+The actual number of incentive programs doesn't seem to make a large difference either. 
 
-Isolating New York State, we can see highest density of cows/acre by looking at nys_cow_density.png. This map
-indicates where ADs could have the biggest impact in NYS. nys_county_digesters shows where ADs are currently in place.
+Figure us_cont_emissions.png shows that states with the highest emissions tend to have digesters in place. 
+Exceptions are Texas and New Mexico, which are relatively high emitters with no ADs. It's also important to note
+that the existence of operational digesters does not specify how many (but could with this data). Future analysis 
+could be done to see how many are in each state and how many would be necessary to make a significant impact.
+
+Isolating New York State
+
+Figure nys_cow_density.png shows the density of cows across NYS counties. The highest density of cows are found in
+midwest part of the state in Genesee, Livingston, Onondaga, Ontario, Wyoming, and Yates counties.
+
+Figure pop_cow_density.png overlays population data, showing where the most people live and where the most cows
+are located in NYS. If the greatest impact on climate change should be focused on where the most people live, the greatest
+impact that ADs can have based on these data points are: Onondaga, Ontario, and Montgomery counties.
+
+I also looked at median income with the assumption that climate change more adversely affects people in lower income
+brackets. When I isolated the bottom 20% of median income and compared it to high cow density, the most advantageous
+county for ADs is Yates county. 
+
+Figure nys_county_digesters.png overlays the existence of digesters on the cow density data.
+
+Based on the above analysis, NYS should focus its incentive programs for AD development in Cortland, Onondaga,
+Tompkins, and Yates counties. It would also benefit from encouraging more ADs in Montgomery and Ontario counties.
 
 
 
